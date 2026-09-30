@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Dashboard | Arena</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --ink: #eaf2ff;
+            --muted: #91a2bd;
+            --panel: rgba(15, 26, 48, .88);
+            --line: rgba(137, 171, 219, .16);
+            --cyan: #61e5ee;
+            --gold: #f4c86a;
+            --violet: #a494ff;
+        }
+        * { box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            margin: 0;
+            padding: 46px 5vw 64px;
+            color: var(--ink);
+            background: radial-gradient(ellipse at 12% 4%, rgba(29, 114, 151, .2), transparent 33%),
+                        radial-gradient(ellipse at 92% 18%, rgba(101, 74, 171, .19), transparent 32%),
+                        linear-gradient(145deg, #080f1e, #0b1427 54%, #10152b);
+            font-family: Bahnschrift, "Segoe UI", sans-serif;
+        }
+        button, input, select { font: inherit; }
+        .shell { width: min(1420px, 100%); margin: 0 auto; }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            margin-bottom: 34px;
+        }
+        .eyebrow, .stat-label, .section-label {
+            color: var(--cyan);
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: .13em;
+            text-transform: uppercase;
+        }
+        h1 { margin: 9px 0 6px; font-size: clamp(1.8rem, 4vw, 2.55rem); font-weight: 700; }
+        .subtitle { margin: 0; color: var(--muted); }
+        .add-button, .submit-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-height: 48px;
+            padding: 0 20px;
+            border: 1px solid rgba(97, 229, 238, .55);
+            border-radius: 8px;
+            color: #07141e;
+            background: linear-gradient(115deg, #71edf0, #6ab7ee);
+            box-shadow: 0 0 24px rgba(69, 209, 225, .17);
+            cursor: pointer;
+            font-weight: 800;
+            transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+        }
+        .add-button:hover, .submit-button:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 0 30px rgba(69, 209, 225, .34); filter: brightness(1.06); }
+        .add-button:active, .submit-button:active { transform: scale(.98); }
+        :focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+        .plus { font-size: 1.35rem; line-height: 1; }
+        .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 26px; }
+        .stat-card, .table-panel {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: linear-gradient(140deg, rgba(20, 36, 63, .9), var(--panel));
+            box-shadow: 0 18px 45px rgba(0, 0, 0, .17), inset 0 1px rgba(255, 255, 255, .035);
+            backdrop-filter: blur(12px);
+        }
+        .stat-card { min-height: 142px; padding: 22px 24px; }
+        .stat-label { display: flex; align-items: center; gap: 9px; color: #a9bad3; }
+        .stat-icon { color: var(--cyan); font-size: 1rem; }
+        .stat-value { margin: 15px 0 0; font-size: 2rem; font-weight: 750; line-height: 1; }
+        .stat-value.gold { color: var(--gold); text-shadow: 0 0 22px rgba(244, 200, 106, .2); }
+        .stat-note { margin: 9px 0 0; color: var(--muted); font-size: .84rem; }
+        .table-panel { overflow: hidden; }
+        .table-heading { display: flex; align-items: center; justify-content: space-between; padding: 20px 22px; border-bottom: 1px solid var(--line); }
+        .table-heading h2 { margin: 0; font-size: 1.05rem; }
+        .table-count { color: var(--muted); font-size: .85rem; }
+        .table-scroll { overflow-x: auto; }
+        table { width: 100%; min-width: 1120px; border-collapse: collapse; text-align: left; }
+        th, td { padding: 15px 16px; border-bottom: 1px solid rgba(137, 171, 219, .1); white-space: nowrap; }
+        th { color: #8fa3c0; background: rgba(8, 16, 31, .48); font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+        td { color: #dce7f7; font-size: .88rem; }
+        tbody tr:last-child td { border-bottom: 0; }
+        tbody tr:hover { background: rgba(95, 144, 202, .055); }
+        .player-ign { color: white; font-weight: 700; }
+        .role-badge, .rank-badge, .star-badge {
+            display: inline-flex;
+            align-items: center;
+            min-height: 27px;
+            padding: 4px 9px;
+            border: 1px solid rgba(157, 185, 220, .18);
+            border-radius: 6px;
+            background: rgba(112, 142, 183, .1);
+            color: #cbd9ec;
+            font-size: .7rem;
+            font-weight: 750;
+            letter-spacing: .035em;
+            text-transform: uppercase;
+            transition: border-color .18s ease, background .18s ease;
+        }
+        .role-badge { text-transform: none; }
+        .role-badge:hover, .rank-badge:hover { border-color: rgba(97, 229, 238, .45); background: rgba(97, 229, 238, .09); }
+        .rank-badge--premium { border-color: rgba(164, 148, 255, .3); color: #c7bbff; background: rgba(125, 103, 214, .12); }
+        .star-badge { border-color: rgba(244, 200, 106, .22); color: #e5c982; background: rgba(190, 143, 49, .09); text-transform: none; }
+        .star-badge--high { border-color: rgba(244, 200, 106, .48); color: #ffdc83; background: rgba(190, 143, 49, .16); box-shadow: 0 0 15px rgba(244, 200, 106, .09); }
+        .win-rate { display: grid; gap: 7px; min-width: 95px; font-variant-numeric: tabular-nums; }
+        .win-track { height: 5px; overflow: hidden; border-radius: 5px; background: #202d43; }
+        .win-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, #6d94ef, #61e5ee); }
+        .empty-row { padding: 42px 20px; color: var(--muted); text-align: center; }
+        .toast {
+            position: fixed;
+            z-index: 10;
+            top: 22px;
+            right: 22px;
+            padding: 14px 18px;
+            border: 1px solid rgba(97, 229, 238, .35);
+            border-radius: 8px;
+            color: #dfffff;
+            background: #112c37;
+            box-shadow: 0 12px 38px rgba(0, 0, 0, .35);
+            animation: toast-in .25s ease both;
+        }
+        .modal-backdrop {
+            position: fixed;
+            z-index: 20;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            padding: 22px;
+            background: rgba(3, 8, 17, .76);
+            backdrop-filter: blur(7px);
+            animation: fade-in .18s ease both;
+        }
+        .modal-backdrop[hidden] { display: none; }
+        .modal {
+            width: min(720px, 100%);
+            max-height: min(90vh, 900px);
+            overflow-y: auto;
+            border: 1px solid rgba(125, 166, 219, .24);
+            border-radius: 12px;
+            background: linear-gradient(145deg, #14223a, #0d172a 72%);
+            box-shadow: 0 30px 90px rgba(0, 0, 0, .55), 0 0 35px rgba(82, 146, 220, .12);
+            animation: modal-in .22s ease both;
+        }
+        .modal-header { display: flex; align-items: center; gap: 14px; padding: 23px 25px; border-bottom: 1px solid var(--line); }
+        .modal-mark { display: grid; width: 40px; height: 40px; place-items: center; border: 1px solid rgba(97, 229, 238, .32); border-radius: 10px; color: var(--cyan); background: rgba(97, 229, 238, .08); font-size: 1.3rem; }
+        .modal-title { flex: 1; margin: 0; font-size: 1.22rem; }
+        .close-button { width: 36px; height: 36px; border: 1px solid var(--line); border-radius: 7px; color: #c4d1e4; background: transparent; cursor: pointer; font-size: 1.2rem; transition: background .18s ease; }
+        .close-button:hover { background: rgba(255, 255, 255, .08); }
+        .player-form { padding: 22px 25px 25px; }
+        .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+        .field { min-width: 0; }
+        .field label { display: block; margin-bottom: 7px; color: #c5d3e6; font-size: .82rem; font-weight: 650; }
+        .form-control { width: 100%; min-height: 43px; padding: 10px 12px; border: 1px solid rgba(145, 170, 207, .22); border-radius: 7px; outline: none; color: var(--ink); background: rgba(5, 13, 26, .62); transition: border-color .18s ease, box-shadow .18s ease; }
+        .form-control:focus { border-color: rgba(97, 229, 238, .75); box-shadow: 0 0 0 3px rgba(97, 229, 238, .1); }
+        input[name="player_id"], input[name="server"] { appearance: textfield; -moz-appearance: textfield; }
+        input[name="player_id"]::-webkit-inner-spin-button, input[name="player_id"]::-webkit-outer-spin-button,
+        input[name="server"]::-webkit-inner-spin-button, input[name="server"]::-webkit-outer-spin-button { margin: 0; -webkit-appearance: none; }
+        select.form-control { color-scheme: dark; }
+        .field-errors { margin: 6px 0 0; padding: 0; color: #ff9eaa; font-size: .78rem; list-style: none; }
+        .form-errors { margin: 0 0 16px; padding: 12px 14px; border: 1px solid rgba(255, 126, 145, .25); border-radius: 7px; color: #ffadb7; background: rgba(142, 39, 57, .13); }
+        .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
+        .cancel-button { min-height: 44px; padding: 0 16px; border: 1px solid var(--line); border-radius: 7px; color: #c8d5e8; background: transparent; cursor: pointer; }
+        .cancel-button:hover { background: rgba(255, 255, 255, .06); }
+        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes modal-in { from { opacity: 0; transform: translateY(9px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes toast-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 720px) {
+            body { padding: 28px 18px 42px; }
+            .header { align-items: flex-start; }
+            .add-button { min-height: 44px; padding: 0 13px; white-space: nowrap; }
+            .stats { grid-template-columns: 1fr; gap: 11px; }
+            .stat-card { min-height: auto; padding: 17px 19px; }
+            .stat-value { margin-top: 11px; font-size: 1.75rem; }
+            .table-heading { padding: 17px; }
+        }
+        @media (max-width: 500px) {
+            .header { flex-direction: column; gap: 17px; }
+            .add-button { width: 100%; }
+            .modal-backdrop { padding: 10px; }
+            .modal { max-height: 95vh; }
+            .modal-header { padding: 17px; }
+            .player-form { padding: 17px; }
+            .form-grid { grid-template-columns: 1fr; gap: 13px; }
+            .form-actions > button { flex: 1; }
+            .toast { top: 12px; right: 12px; left: 12px; text-align: center; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+        }
+    </style>
+</head>
+<body>
+    <main class="shell">
+        <header class="header">
+            <div>
+                <div class="eyebrow">MLBB Player Management System</div>
+                <h1>Player Dashboard</h1>
+                <p class="subtitle">Manage and monitor your MLBB players</p>
+            </div>
+            <button class="add-button" type="button" id="open-player-modal">
+                <span class="plus" aria-hidden="true">+</span> Add Player
+            </button>
+        </header>
+
+        <section class="stats" aria-label="Player statistics">
+            <article class="stat-card">
+                <div class="stat-label"><span class="stat-icon" aria-hidden="true">//</span> Total Players</div>
+                <p class="stat-value">{{ total_players }}</p>
+            </article>
+            <article class="stat-card">
+                <div class="stat-label"><span class="stat-icon" aria-hidden="true">%</span> Average Win Rate</div>
+                <p class="stat-value">{{ avg_win_rate|floatformat:2 }}%</p>
+            </article>
+            <article class="stat-card">
+                <div class="stat-label"><span class="stat-icon" aria-hidden="true">&#9733;</span> Highest Stars</div>
+                <p class="stat-value gold">{% if highest_player %}{{ highest_player.highest_stars }}{% else %}0{% endif %}</p>
+                <p class="stat-note">{% if highest_player %}Highest: {{ highest_player.ign }}{% else %}No players yet{% endif %}</p>
+            </article>
+        </section>
+
+        <section class="table-panel" aria-labelledby="roster-heading">
+            <div class="table-heading">
+                <h2 id="roster-heading">Player Roster</h2>
+                <span class="table-count">{{ total_players }} player{{ total_players|pluralize }}</span>
+            </div>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Player ID</th>
+                            <th>Server</th>
+                            <th>IGN</th>
+                            <th>Main Role</th>
+                            <th>Highest Rank</th>
+                            <th>Highest Stars</th>
+                            <th>Current Rank</th>
+                            <th>Current Stars</th>
+                            <th>Win Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for player in players %}
+                            <tr>
+                                <td>{{ player.player_id }}</td>
+                                <td>{{ player.server }}</td>
+                                <td class="player-ign">{{ player.ign }}</td>
+                                <td><span class="role-badge">{{ player.main_role }}</span></td>
+                                <td><span class="rank-badge {% if 'Mythic' in player.highest_rank %}rank-badge--premium{% endif %}">{{ player.highest_rank }}</span></td>
+                                <td><span class="star-badge {% if player.highest_stars >= 100 %}star-badge--high{% endif %}">&#9733; {{ player.highest_stars }} Stars</span></td>
+                                <td><span class="rank-badge {% if 'Mythic' in player.current_rank %}rank-badge--premium{% endif %}">{{ player.current_rank }}</span></td>
+                                <td><span class="star-badge {% if player.current_stars >= 100 %}star-badge--high{% endif %}">&#9733; {{ player.current_stars }} Stars</span></td>
+                                <td>
+                                    <div class="win-rate" aria-label="{{ player.win_rate|floatformat:2 }} percent win rate">
+                                        <span>{{ player.win_rate|floatformat:2 }}%</span>
+                                        <span class="win-track" aria-hidden="true"><span class="win-fill" style="display:block;width:{{ player.win_rate }}%"></span></span>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr><td class="empty-row" colspan="9">No players found. Add a player to build your roster.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    {% for message in messages %}
+        <div class="toast" role="status">&#10003; {{ message }}</div>
+    {% endfor %}
+
+    <div class="modal-backdrop" id="player-modal" {% if not open_add_player %}hidden{% endif %}>
+        <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <header class="modal-header">
+                <span class="modal-mark" aria-hidden="true">&#9733;</span>
+                <h2 class="modal-title" id="modal-title">Add New Player</h2>
+                <button class="close-button" type="button" id="close-player-modal" aria-label="Close dialog">&times;</button>
+            </header>
+            <form class="player-form" method="post" novalidate>
+                {% csrf_token %}
+                {% if form.non_field_errors %}<div class="form-errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+                <div class="form-grid">
+                    {% for field in form %}
+                        <div class="field">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}<ul class="field-errors">{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                            {% if field.name == 'highest_stars' %}<div class="field-errors" id="highest-stars-validation" role="alert" hidden></div>{% endif %}
+                            {% if field.name == 'current_stars' %}<div class="field-errors" id="current-stars-validation" role="alert" hidden></div>{% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="form-actions">
+                    <button class="cancel-button" type="button" id="cancel-player-modal">Cancel</button>
+                    <button class="submit-button" type="submit">Save Player</button>
+                </div>
+            </form>
+        </section>
+    </div>
+    <script>
+        (() => {
+            const backdrop = document.getElementById('player-modal');
+            const openButton = document.getElementById('open-player-modal');
+            const closeButton = document.getElementById('close-player-modal');
+            const cancelButton = document.getElementById('cancel-player-modal');
+            const form = backdrop.querySelector('form');
+            const starPairs = [
+                {
+                    rank: document.getElementById('id_highest_rank'),
+                    stars: document.getElementById('id_highest_stars'),
+                    error: document.getElementById('highest-stars-validation')
+                },
+                {
+                    rank: document.getElementById('id_current_rank'),
+                    stars: document.getElementById('id_current_stars'),
+                    error: document.getElementById('current-stars-validation')
+                }
+            ];
+            const mythicStarRanges = {
+                'Mythic': [1, 24],
+                'Mythical Honor': [25, 49],
+                'Mythical Glory': [50, 99],
+                'Mythical Immortal': [100, null]
+            };
+
+            const validateStarPair = (pair) => {
+                const range = mythicStarRanges[pair.rank.value];
+                let message = '';
+                if (range && pair.stars.value !== '') {
+                    const stars = Number(pair.stars.value);
+                    if (stars < range[0] || (range[1] !== null && stars > range[1])) {
+                        message = range[1] === null
+                            ? `${pair.rank.value} requires at least ${range[0]} stars.`
+                            : `${pair.rank.value} requires ${range[0]}-${range[1]} stars.`;
+                    }
+                }
+                pair.stars.setCustomValidity(message);
+                pair.error.textContent = message;
+                pair.error.hidden = !message;
+                return !message;
+            };
+
+            starPairs.forEach((pair) => {
+                pair.rank.addEventListener('change', () => validateStarPair(pair));
+                pair.stars.addEventListener('input', () => validateStarPair(pair));
+            });
+            form.addEventListener('submit', (event) => {
+                starPairs.forEach(validateStarPair);
+                if (!form.reportValidity()) event.preventDefault();
+            });
+
+            const closeModal = () => { backdrop.hidden = true; };
+            openButton.addEventListener('click', () => {
+                backdrop.hidden = false;
+                backdrop.querySelector('input, select').focus();
+            });
+            closeButton.addEventListener('click', closeModal);
+            cancelButton.addEventListener('click', closeModal);
+            backdrop.addEventListener('click', (event) => {
+                if (event.target === backdrop) closeModal();
+            });
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && !backdrop.hidden) closeModal();
+            });
+            document.querySelectorAll('.toast').forEach((toast) => {
+                window.setTimeout(() => toast.remove(), 4500);
+            });
+            if (!backdrop.hidden) backdrop.querySelector('input, select').focus();
+        })();
+    </script>
+</body>
+</html>
