@@ -61,9 +61,6 @@ class PlayerForm(forms.ModelForm):
             'current_stars',
             'win_rate',
         )
-        error_messages = {
-            'player_id': {'unique': 'Player ID already exists.'},
-        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
