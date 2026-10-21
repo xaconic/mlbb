@@ -1,0 +1,15 @@
+{% extends 'community/base.html' %}
+{% block title %}Squads | DawnRoster{% endblock %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">SQUADS & STAFF</p><h1>Find your team</h1><p>Join a recruiting squad or create one and manage the lineup with your staff.</p></section>
+{% if can_create_team %}
+{% if form.errors %}<div class="form-errors" role="alert">{{ form.errors }}</div>{% endif %}
+<div class="two-column">
+    <section class="surface-form"><h2>Create a team</h2><form method="post">{% csrf_token %}{% for field in form %}<div class="form-field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}</div>{% endfor %}<button class="button button-primary" type="submit">Create team</button></form></section>
+    <section><h2>Your teams</h2><div class="stack-list">{% for team in my_teams %}<a class="list-row" href="{% url 'team-detail' team.pk %}"><span><strong>{{ team.name }}</strong><small>{{ team.memberships.count }} members</small></span><b>Open →</b></a>{% empty %}<p class="muted">Your created teams and active memberships will appear here.</p>{% endfor %}</div></section>
+</div>
+{% else %}<p class="notice">Team creation is available to accounts registered with a captain, manager, or coach role.</p>{% endif %}
+<section class="content-section"><div class="section-title"><div><p class="eyebrow">RECRUITING</p><h2>Open opportunities</h2></div></div><div class="card-grid">
+{% for team in teams %}<article class="community-card"><div class="card-overline"><span class="role-chip">{{ team.preferred_role|default:"Any role" }}</span><span>{{ team.minimum_rank|default:"Any rank" }}</span></div><h3>{{ team.name }}</h3><p>{{ team.description|default:"A team is looking for its next teammate." }}</p><p class="muted">Captain {{ team.owner.username }} · {{ team.memberships.count }} members</p><a class="text-link" href="{% url 'team-detail' team.pk %}">View team →</a></article>
+{% empty %}<div class="empty-state"><h3>No teams recruiting right now</h3><p>Create a team or check back soon.</p></div>{% endfor %}</div></section>
+{% endblock %}

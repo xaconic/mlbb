@@ -1,0 +1,11 @@
+{% extends 'community/base.html' %}
+{% block title %}Notifications | DawnRoster{% endblock %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">COMMUNITY ACTIVITY</p><h1>Notifications</h1><p>Team requests and tournament registration updates relevant to your account.</p></section>
+<div class="notification-grid">
+    <section class="surface-panel"><h2>Team requests to review</h2><div class="stack-list">{% for item in team_requests %}<a class="list-row" href="{% url 'team-detail' item.team.pk %}"><span><strong>{{ item.user.username }} wants to join {{ item.team.name }}</strong><small>Received {{ item.created_at|date:"M j, Y H:i" }}</small></span><b>Review →</b></a>{% empty %}<p class="muted">No team membership requests need your attention.</p>{% endfor %}</div></section>
+    <section class="surface-panel"><h2>Your team applications</h2><div class="stack-list">{% for item in membership_updates %}<a class="list-row" href="{% url 'team-detail' item.team.pk %}"><span><strong>{{ item.team.name }}</strong><small>{{ item.get_status_display }} · {{ item.created_at|date:"M j, Y" }}</small></span><b>Open →</b></a>{% empty %}<p class="muted">No team application updates yet.</p>{% endfor %}</div></section>
+    <section class="surface-panel"><h2>Tournament entries to review</h2><div class="stack-list">{% for item in tournament_requests %}<a class="list-row" href="{% url 'tournament-detail' item.tournament.pk %}"><span><strong>{{ item.team.name }} entered {{ item.tournament.name }}</strong><small>Received {{ item.created_at|date:"M j, Y H:i" }}</small></span><b>Review →</b></a>{% empty %}<p class="muted">No tournament entries need your attention.</p>{% endfor %}</div></section>
+    <section class="surface-panel"><h2>Your tournament results</h2><div class="stack-list">{% for item in tournament_updates %}<a class="list-row" href="{% url 'tournament-detail' item.tournament.pk %}"><span><strong>{{ item.tournament.name }}</strong><small>{{ item.team.name }} · {{ item.get_status_display }}</small></span><b>Open →</b></a>{% empty %}<p class="muted">No tournament registration updates yet.</p>{% endfor %}</div></section>
+</div>
+{% endblock %}

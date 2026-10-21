@@ -1,0 +1,7 @@
+{% extends 'community/base.html' %}
+{% block title %}Edit {{ tournament.name }} | DawnRoster{% endblock %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">ORGANIZER CONTROLS</p><h1>Edit tournament</h1></section>
+<form method="post" class="surface-form">{% csrf_token %}{% if form.errors %}<div class="form-errors">{{ form.errors }}</div>{% endif %}{% for field in form %}<div class="form-field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}</div>{% endfor %}<div class="form-actions"><button class="button button-primary" type="submit">Save changes</button><a class="button button-outline" href="{% url 'tournament-detail' tournament.pk %}">Cancel</a></div></form>
+<form method="post" class="danger-zone" onsubmit="return confirm('Delete this tournament and all its entries?');">{% csrf_token %}<input type="hidden" name="action" value="delete"><button class="button button-danger" type="submit">Delete tournament</button></form>
+{% endblock %}

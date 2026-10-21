@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 80" width="400" height="80">
+  <defs>
+    <!-- Shield gradient - deep navy to dark blue -->
+    <linearGradient id="shieldGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0F1A2E"/>
+      <stop offset="100%" stop-color="#080E1B"/>
+    </linearGradient>
+    <!-- Electric blue accent gradient -->
+    <linearGradient id="accentGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#56D9F5"/>
+      <stop offset="100%" stop-color="#668CFF"/>
+    </linearGradient>
+    <!-- Inner energy gradient -->
+    <linearGradient id="energyGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#64dceb"/>
+      <stop offset="50%" stop-color="#56D9F5"/>
+      <stop offset="100%" stop-color="#8B7CFF"/>
+    </linearGradient>
+    <!-- Wordmark gradient -->
+    <linearGradient id="wordGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#56D9F5"/>
+      <stop offset="50%" stop-color="#668CFF"/>
+      <stop offset="100%" stop-color="#8B7CFF"/>
+    </linearGradient>
+    <!-- Glow filter -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <!-- Inner glow for shield -->
+    <filter id="innerGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feFlood flood-color="#56D9F5" flood-opacity="0.3" result="color"/>
+      <feComposite in="color" in2="blur" operator="in" result="glowIn"/>
+      <feComposite in="SourceGraphic" in2="glowIn" operator="over"/>
+    </filter>
+    <!-- Outer glow on emblem -->
+    <filter id="outerGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>
+      <feFlood flood-color="#56D9F5" flood-opacity="0.25"/>
+      <feComposite in2="blur" operator="in" result="glow"/>
+      <feMerge>
+        <feMergeNode in="glow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <!-- Clip for inner shield content -->
+    <clipPath id="shieldClip">
+      <path d="M35,4 L58,14 L62,38 L35,72 L8,38 L12,14 Z"/>
+    </clipPath>
+  </defs>
+
+  <!-- ========== EMBLEM GROUP (left side) ========== -->
+  <g transform="translate(2, 2)" filter="url(#outerGlow)">
+    <!-- Shield outer shape — angular hexagonal crest -->
+    <path d="M35,2 L60,13 L64,40 L35,76 L6,40 L10,13 Z"
+          fill="url(#shieldGrad)" stroke="url(#accentGrad)" stroke-width="1.5"
+          stroke-linejoin="miter"/>
+
+    <!-- Inner border line -->
+    <path d="M35,7 L56,16 L59,39 L35,69 L11,39 L14,16 Z"
+          fill="none" stroke="#56D9F5" stroke-width="0.5" stroke-opacity="0.4"
+          stroke-linejoin="miter"/>
+
+    <!-- Energy lines — diagonal blade accents -->
+    <line x1="14" y1="20" x2="26" y2="14" stroke="#64dceb" stroke-width="0.6" stroke-opacity="0.5"/>
+    <line x1="56" y1="20" x2="44" y2="14" stroke="#64dceb" stroke-width="0.6" stroke-opacity="0.5"/>
+    <line x1="10" y1="35" x2="18" y2="28" stroke="#668CFF" stroke-width="0.4" stroke-opacity="0.35"/>
+    <line x1="60" y1="35" x2="52" y2="28" stroke="#668CFF" stroke-width="0.4" stroke-opacity="0.35"/>
+
+    <!-- Bottom blade/chevron accents -->
+    <path d="M25,58 L35,70 L45,58" fill="none" stroke="#56D9F5" stroke-width="0.6" stroke-opacity="0.5"/>
+    <path d="M28,54 L35,64 L42,54" fill="none" stroke="#668CFF" stroke-width="0.4" stroke-opacity="0.3"/>
+
+    <!-- The "D" letterform — built from geometric shapes -->
+    <g filter="url(#glow)">
+      <!-- D vertical stroke -->
+      <path d="M26,22 L26,56 L30,56 L30,22 Z" fill="url(#energyGrad)" opacity="0.95"/>
+      <!-- D curve — angular/faceted arc -->
+      <path d="M30,22 L44,22 L52,32 L52,46 L44,56 L30,56 L30,52 L42,52 L48,44 L48,34 L42,26 L30,26 Z"
+            fill="url(#accentGrad)" opacity="0.9"/>
+      <!-- Inner cutout highlight on D curve -->
+      <path d="M33,30 L40,30 L45,36 L45,42 L40,48 L33,48 L33,44 L38,44 L41,40 L41,38 L38,34 L33,34 Z"
+            fill="#080E1B" opacity="0.85"/>
+    </g>
+
+    <!-- Small star/diamond accent at top -->
+    <g transform="translate(35, 10)" opacity="0.7">
+      <polygon points="0,-3 1.2,0 0,3 -1.2,0" fill="#64dceb"/>
+      <polygon points="-3,0 0,-1.2 3,0 0,1.2" fill="#64dceb" opacity="0.5"/>
+    </g>
+
+    <!-- Corner accent dots -->
+    <circle cx="35" cy="5" r="0.8" fill="#56D9F5" opacity="0.6"/>
+    <circle cx="12" cy="16" r="0.6" fill="#668CFF" opacity="0.4"/>
+    <circle cx="58" cy="16" r="0.6" fill="#668CFF" opacity="0.4"/>
+  </g>
+
+  <!-- ========== WORDMARK (right side) ========== -->
+  <g transform="translate(82, 0)">
+    <!-- "DAWNROSTER" main title -->
+    <text x="0" y="38" font-family="system-ui, 'Segoe UI', sans-serif"
+          font-size="28" font-weight="700" letter-spacing="3"
+          fill="url(#wordGrad)">
+      DAWNROSTER
+    </text>
+
+    <!-- Decorative line under wordmark -->
+    <line x1="0" y1="44" x2="260" y2="44" stroke="url(#accentGrad)" stroke-width="0.8" opacity="0.4"/>
+
+    <!-- "MOBILE LEGENDS PLAYER HUB" subtitle -->
+    <text x="1" y="58" font-family="system-ui, 'Segoe UI', sans-serif"
+          font-size="9" font-weight="400" letter-spacing="4.5"
+          fill="#668CFF" opacity="0.75">
+      MOBILE LEGENDS PLAYER HUB
+    </text>
+  </g>
+</svg>

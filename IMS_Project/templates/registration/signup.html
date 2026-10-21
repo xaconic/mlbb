@@ -1,0 +1,89 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#080E1B">
+    <meta name="description" content="DawnRoster - Create your account and start your MLBB player journey.">
+    <title>Create account | DawnRoster</title>
+    <link rel="icon" href="{% static 'myapp/dawnroster-icon.svg' %}" type="image/svg+xml">
+    <link rel="stylesheet" href="{% static 'myapp/theme.css' %}">
+    <link rel="stylesheet" href="{% static 'myapp/auth-premium.css' %}?v=2">
+</head>
+<body class="auth-page">
+
+    <main class="auth-shell">
+        <a class="brand auth-brand" href="{% url 'index' %}" aria-label="DawnRoster home">
+            <img class="brand-logo" src="{% static 'myapp/dawnroster-icon.svg' %}" alt="" width="42" height="42">
+            <span class="brand-copy"><strong>DAWNROSTER</strong><span>MOBILE LEGENDS PLAYER HUB</span></span>
+        </a>
+
+        <div class="auth-grid auth-grid--signup">
+            <section class="auth-story" aria-labelledby="auth-story-title">
+                <div class="auth-story-art" aria-hidden="true">
+                    <div class="auth-ring auth-ring--one"></div>
+                    <div class="auth-ring auth-ring--two"></div>
+                    <div class="auth-hero-showcase">
+                        <!-- Hero cards injected by auth-bg.js -->
+                    </div>
+                    <span class="auth-spark auth-spark--one"></span>
+                    <span class="auth-spark auth-spark--two"></span>
+                    <span class="auth-spark auth-spark--three"></span>
+                </div>
+                <p class="eyebrow"><span class="eyebrow-mark"></span> MAKE YOUR MOVE</p>
+                <h1 id="auth-story-title">Build your<br>roster. <span>Own</span><br>your climb.</h1>
+                <p>One home for your players, their ranks, and every step forward.</p>
+                <div class="auth-proof"><span class="auth-proof-line"></span> YOUR SQUAD STARTS HERE <span>02 / 03</span></div>
+            </section>
+
+            <section class="auth-card" aria-labelledby="auth-title">
+                <div class="auth-card-heading">
+                    <p class="section-kicker">CREATE YOUR ACCOUNT</p>
+                    <h2 id="auth-title">Create your account</h2>
+                    <p>Build your profile and start your player journey.</p>
+                </div>
+
+                <form class="auth-form" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ next }}">
+                    {% if form.non_field_errors %}
+                        <div class="form-errors" role="alert">{{ form.non_field_errors }}</div>
+                    {% endif %}
+                    {% for field in form %}
+                        {% if field.name == 'roles' %}
+                            <fieldset class="auth-role-field">
+                                <legend>Choose your role(s)</legend>
+                                <p>Select every way you plan to use the hub.</p>
+                                {{ field }}
+                            </fieldset>
+                        {% else %}
+                            <div class="field">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                <div class="auth-input-wrap">
+                                    {{ field }}
+                                    {% if 'password' in field.name %}
+                                        <button class="password-toggle" type="button" data-password-toggle="{{ field.id_for_label }}" aria-label="Show password" aria-pressed="false">
+                                            <svg class="password-toggle__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.75"/><path class="password-toggle__slash" d="M3 3l18 18"/></svg>
+                                            <span class="sr-only">Show password</span>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                                {% if field.help_text %}<div class="auth-help">{{ field.help_text|safe }}</div>{% endif %}
+                            </div>
+                        {% endif %}
+                        {% if field.errors %}<ul class="field-errors">{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                    {% endfor %}
+                    <button class="auth-submit" type="submit">Create account <span aria-hidden="true">&rarr;</span></button>
+                </form>
+
+                <p class="auth-switch">Already have an account? <a href="{% url 'login' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Sign in</a></p>
+                <a class="auth-back" href="{% url 'index' %}"><span aria-hidden="true">&larr;</span> Back to player hub</a>
+            </section>
+        </div>
+        <footer class="auth-footer"><span>DAWNROSTER &middot; UNOFFICIAL MLBB COMPANION</span><span>Your player journey, all in one place.</span></footer>
+    </main>
+    <script src="{% static 'myapp/auth.js' %}?v=4" defer></script>
+    <script src="{% static 'myapp/auth-bg.js' %}?v=2" defer></script>
+</body>
+</html>

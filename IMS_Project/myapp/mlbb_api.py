@@ -10,6 +10,7 @@ from urllib.request import Request, urlopen
 
 logger = logging.getLogger(__name__)
 API_URL = "https://api.isan.eu.org/nickname/ml"
+ALT_API_URL = "https://api.isan.eu.org/nickname"
 TIMEOUT_SECONDS = 8
 USER_AGENT = "Mozilla/5.0 (compatible; MLBBPlayerManager/1.0)"
 
@@ -116,81 +117,91 @@ def _normalize_player(payload, player_id, server_id):
     }
 
 
+def _request_lookup(player_id, server_id):
+    """Attempt the primary and fallback MLBB lookup endpoints."""
+    candidates = [
+        (
+            f"{API_URL}?{urlencode({'id': player_id, 'server': server_id})}",
+            {"Accept": "application/json", "User-Agent": USER_AGENT},
+        ),
+        (
+            f"{API_URL}?{urlencode({'player_id': player_id, 'server_id': server_id})}",
+            {"Accept": "application/json", "User-Agent": USER_AGENT},
+        ),
+        (
+            f"{ALT_API_URL}?{urlencode({'id': player_id, 'server': server_id})}",
+            {"Accept": "application/json", "User-Agent": USER_AGENT},
+        ),
+    ]
+    last_error = None
+    for url, headers in candidates:
+        request = Request(url, headers=headers, method="GET")
+        try:
+            with urlopen(request, timeout=TIMEOUT_SECONDS) as response:
+                if response.status == 404:
+                    raise LookupError(
+                        "Player not found. Please check the Player ID and Server ID.",
+                        status=404,
+                    )
+                if response.status < 200 or response.status >= 300:
+                    logger.warning("MLBB nickname service returned HTTP %s for %s", response.status, url)
+                    last_error = LookupError(
+                        "MLBB lookup service is temporarily unavailable.",
+                        status=503,
+                    )
+                    continue
+                try:
+                    payload = json.loads(response.read().decode("utf-8"))
+                except (UnicodeDecodeError, json.JSONDecodeError):
+                    raise LookupError(
+                        "The MLBB lookup service returned an unexpected response."
+                    ) from None
+                return payload
+        except HTTPError as error:
+            if error.code == 404:
+                raise LookupError(
+                    "Player not found. Please check the Player ID and Server ID.",
+                    status=404,
+                ) from None
+            logger.warning("MLBB nickname service returned HTTP %s for %s", error.code, url)
+            last_error = LookupError(
+                "The MLBB lookup provider returned HTTP %s." % error.code,
+                status=502 if error.code not in (429, 503) else 503,
+            )
+            if error.code in (401, 403, 429, 500, 502, 503):
+                continue
+            raise last_error from None
+        except (TimeoutError, socket.timeout):
+            raise LookupError(
+                "MLBB lookup request timed out. Please try again.", status=504
+            ) from None
+        except URLError as error:
+            if isinstance(error.reason, (TimeoutError, socket.timeout)):
+                raise LookupError(
+                    "MLBB lookup request timed out. Please try again.", status=504
+                ) from None
+            logger.warning("MLBB nickname service connection failed for %s: %s", url, error.reason)
+            last_error = LookupError(
+                "The MLBB lookup service is temporarily unavailable. Please try again.",
+                status=503,
+            )
+            continue
+        except OSError as error:
+            logger.warning("MLBB nickname service request failed for %s: %s", url, error)
+            last_error = LookupError(
+                "The MLBB lookup service is temporarily unavailable. Please try again.",
+                status=503,
+            )
+            continue
+
+    if last_error is not None:
+        raise last_error
+    raise LookupError("The MLBB lookup service is temporarily unavailable. Please try again.", status=503)
+
+
 def lookup_player(player_id, server_id):
     """Look up a player's nickname without credentials or API keys."""
     player_id = _validate_identifier(player_id, "Player ID")
     server_id = _validate_identifier(server_id, "Server ID")
-    query = urlencode({"id": player_id, "server": server_id})
-    request = Request(
-        f"{API_URL}?{query}",
-        # The upstream Cloudflare rule rejects urllib's default Python-urllib
-        # user agent with HTTP 403 (error 1010). Send a normal application UA.
-        headers={"Accept": "application/json", "User-Agent": USER_AGENT},
-        method="GET",
-    )
-    try:
-        with urlopen(request, timeout=TIMEOUT_SECONDS) as response:
-            if response.status == 404:
-                raise LookupError(
-                    "Player not found. Please check the Player ID and Server ID.",
-                    status=404,
-                )
-            if response.status < 200 or response.status >= 300:
-                logger.warning("MLBB nickname service returned HTTP %s", response.status)
-                raise LookupError(
-                    "MLBB lookup service is temporarily unavailable."
-                )
-            try:
-                payload = json.loads(response.read().decode("utf-8"))
-            except (UnicodeDecodeError, json.JSONDecodeError):
-                raise LookupError(
-                    "The MLBB lookup service returned an unexpected response."
-                ) from None
-    except HTTPError as error:
-        try:
-            response_body = error.read(1000).decode('utf-8', errors='replace').strip()
-        except OSError:
-            response_body = ''
-        if error.code == 404:
-            raise LookupError(
-                "Player not found. Please check the Player ID and Server ID.",
-                status=404,
-            ) from None
-        logger.warning(
-            "MLBB nickname service returned HTTP %s: %s",
-            error.code,
-            response_body[:300] or '(empty response body)',
-        )
-        messages = {
-            401: ("The MLBB lookup provider rejected the request (HTTP 401).", 502),
-            403: ("The MLBB lookup provider denied access (HTTP 403).", 502),
-            429: ("The MLBB lookup provider rate limit was reached (HTTP 429). Please try again later.", 503),
-            500: ("The MLBB lookup provider returned HTTP 500.", 502),
-            502: ("The MLBB lookup provider returned HTTP 502.", 502),
-            503: ("The MLBB lookup provider is unavailable (HTTP 503).", 503),
-        }
-        message, status = messages.get(
-            error.code,
-            (f"The MLBB lookup provider returned HTTP {error.code}.", 502),
-        )
-        raise LookupError(message, status=status) from None
-    except (TimeoutError, socket.timeout):
-        raise LookupError(
-            "MLBB lookup request timed out. Please try again.", status=504
-        ) from None
-    except URLError as error:
-        if isinstance(error.reason, (TimeoutError, socket.timeout)):
-            raise LookupError(
-                "MLBB lookup request timed out. Please try again.", status=504
-            ) from None
-        logger.warning("MLBB nickname service connection failed: %s", error.reason)
-        raise LookupError(
-            "Could not connect to the MLBB lookup provider. Please try again."
-        ) from None
-    except OSError as error:
-        logger.warning("MLBB nickname service request failed: %s", error)
-        raise LookupError(
-            "The MLBB lookup request failed before a response was received. Please try again."
-        ) from None
-
+    payload = _request_lookup(player_id, server_id)
     return _normalize_player(payload, player_id, server_id)

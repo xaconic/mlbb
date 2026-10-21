@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 520" fill="none">
+  <defs>
+    <linearGradient id="blade" x1="118" y1="78" x2="405" y2="422" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D7F5FF"/>
+      <stop offset=".35" stop-color="#8BBEFF"/>
+      <stop offset=".72" stop-color="#9C7DFF"/>
+      <stop offset="1" stop-color="#F0D38B"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="100" y1="70" x2="420" y2="450" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#172E55" stop-opacity=".16"/>
+      <stop offset=".55" stop-color="#6671E8" stop-opacity=".2"/>
+      <stop offset="1" stop-color="#0C162A" stop-opacity=".1"/>
+    </linearGradient>
+    <radialGradient id="core" cx="0" cy="0" r="1" gradientTransform="matrix(0 156 -156 0 260 258)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#9EDBFF" stop-opacity=".28"/>
+      <stop offset="1" stop-color="#7A72FF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow" x="44" y="30" width="432" height="456" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="12"/>
+    </filter>
+  </defs>
+  <circle cx="260" cy="258" r="205" stroke="#98BFFF" stroke-opacity=".12"/>
+  <circle cx="260" cy="258" r="166" stroke="#D8C37D" stroke-opacity=".26" stroke-dasharray="2 12"/>
+  <circle cx="260" cy="258" r="125" fill="url(#core)"/>
+  <path d="M260 47 436 149v204L260 455 84 353V149L260 47Z" fill="url(#glass)" stroke="#B9CBFF" stroke-opacity=".34"/>
+  <path d="m260 74 151 87v174l-151 87-151-87V161l151-87Z" stroke="#A4C7FF" stroke-opacity=".26"/>
+  <path d="M260 116 363 177v133l-103 61-103-61V177l103-61Z" fill="#101D36" fill-opacity=".8" stroke="url(#blade)" stroke-opacity=".68" stroke-width="2"/>
+  <path d="m260 148 65 38-24 17-21-12v47l55 31-75 95-75-95 55-31v-47l-21 12-24-17 65-38Z" fill="url(#blade)"/>
+  <path d="m260 225 30 17-30 54-30-54 30-17Z" fill="#F2E4B3"/>
+  <path d="M120 249h37m206 0h37M260 93v28m0 274v28" stroke="#E8CD84" stroke-opacity=".74" stroke-width="2"/>
+  <circle cx="260" cy="66" r="4" fill="#E8CD84"/>
+  <circle cx="452" cy="258" r="4" fill="#92C8FF"/>
+  <circle cx="68" cy="258" r="4" fill="#92C8FF"/>
+  <path d="M166 427h188" stroke="#A3BFFF" stroke-opacity=".22"/>
+</svg>

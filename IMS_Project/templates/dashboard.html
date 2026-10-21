@@ -1,157 +1,103 @@
+{% extends 'community/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en" data-theme="dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Player Dashboard | Arena</title>
-    <link rel="stylesheet" href="{% static 'myapp/theme.css' %}">
-    <link rel="stylesheet" href="{% static 'myapp/dashboard.css' %}">
-</head>
-<body>
-    <main class="shell">
-        <header class="header">
-            <div>
-                <div class="eyebrow">MLBB Player Management System</div>
-                <h1>Player Dashboard</h1>
-                <p class="subtitle">Manage and monitor your MLBB players</p>
-            </div>
-            <div class="header-actions">
-                <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Switch to light mode" title="Switch to light mode">
-                    <svg class="theme-icon theme-icon-sun" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-                        <circle cx="12" cy="12" r="4"></circle>
-                        <path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"></path>
-                    </svg>
-                    <svg class="theme-icon theme-icon-moon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" hidden>
-                        <path d="M20.2 15.1A8.5 8.5 0 0 1 8.9 3.8 8.5 8.5 0 1 0 20.2 15.1Z"></path>
-                    </svg>
-                </button>
-                <button class="add-button" type="button" id="open-player-modal">
-                    <span class="plus" aria-hidden="true">+</span> Add Player
-                </button>
-            </div>
-        </header>
-
-        <section class="stats" aria-label="Player statistics">
-            <article class="stat-card">
-                <div class="stat-label"><span class="stat-icon" aria-hidden="true">//</span> Total Players</div>
-                <p class="stat-value">{{ total_players }}</p>
-            </article>
-            <article class="stat-card">
-                <div class="stat-label"><span class="stat-icon" aria-hidden="true">%</span> Average Win Rate</div>
-                <p class="stat-value">{{ avg_win_rate|floatformat:2 }}%</p>
-            </article>
-            <article class="stat-card">
-                <div class="stat-label"><span class="stat-icon" aria-hidden="true">&#9733;</span> Highest Stars</div>
-                <p class="stat-value gold">{% if highest_player %}{{ highest_player.highest_stars }}{% else %}0{% endif %}</p>
-                <p class="stat-note">{% if highest_player %}Highest: {{ highest_player.ign }}{% else %}No players yet{% endif %}</p>
-            </article>
-        </section>
-
-        <section class="table-panel" aria-labelledby="roster-heading">
-            <div class="table-heading">
-                <h2 id="roster-heading">Player Roster</h2>
-                <span class="table-count">{{ total_players }} player{{ total_players|pluralize }}</span>
-            </div>
-            <div class="table-scroll">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Player ID</th>
-                            <th>Server</th>
-                            <th>IGN</th>
-                            <th>Main Role</th>
-                            <th>Highest Rank</th>
-                            <th>Highest Stars</th>
-                            <th>Current Rank</th>
-                            <th>Current Stars</th>
-                            <th>Win Rate</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for player in players %}
-                            <tr>
-                                <td>{{ player.player_id }}</td>
-                                <td>{{ player.server }}</td>
-                                <td class="player-ign">{{ player.ign }}</td>
-                                <td><span class="role-badge">{{ player.main_role }}</span></td>
-                                <td><span class="rank-badge {% if 'Mythic' in player.highest_rank %}rank-badge--premium{% endif %}">{{ player.highest_rank }}</span></td>
-                                <td><span class="star-badge {% if player.highest_stars >= 100 %}star-badge--high{% endif %}">&#9733; {{ player.highest_stars }} Stars</span></td>
-                                <td><span class="rank-badge {% if 'Mythic' in player.current_rank %}rank-badge--premium{% endif %}">{{ player.current_rank }}</span></td>
-                                <td><span class="star-badge {% if player.current_stars >= 100 %}star-badge--high{% endif %}">&#9733; {{ player.current_stars }} Stars</span></td>
-                                <td>
-                                    <div class="win-rate" aria-label="{{ player.win_rate|floatformat:2 }} percent win rate">
-                                        <span>{{ player.win_rate|floatformat:2 }}%</span>
-                                        <span class="win-track" aria-hidden="true"><span class="win-fill" style="display:block;width:{{ player.win_rate }}%"></span></span>
-                                    </div>
-                                </td>
-                            </tr>
-                        {% empty %}
-                            <tr><td class="empty-row" colspan="9">No players found. Add a player to build your roster.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </section>
-    </main>
-
-    {% for message in messages %}
-        <div class="toast" role="status">&#10003; {{ message }}</div>
-    {% endfor %}
-
-    <div class="modal-backdrop" id="player-modal" {% if not open_add_player %}hidden{% endif %}>
-        <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-            <header class="modal-header">
-                <span class="modal-mark" aria-hidden="true">&#9733;</span>
-                <h2 class="modal-title" id="modal-title">Add New Player</h2>
-                <button class="close-button" type="button" id="close-player-modal" aria-label="Close dialog">&times;</button>
-            </header>
-            <form class="player-form" method="post" novalidate>
-                {% csrf_token %}
-                {% if form.non_field_errors %}<div class="form-errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
-                <p class="section-label">Add Player</p>
-                <div class="form-grid">
-                    {% for field in form %}
-                        {% if field.name == 'player_id' or field.name == 'server' %}
-                            <div class="field">
-                                <label for="{{ field.id_for_label }}">{% if field.name == 'server' %}Server ID{% else %}{{ field.label }}{% endif %}</label>
-                                {{ field }}
-                                {% if field.errors %}<ul class="field-errors">{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
-                            </div>
-                        {% endif %}
-                    {% endfor %}
-                </div>
-                <div class="form-actions lookup-actions">
-                    <button class="lookup-button" type="button" id="lookup-player" data-lookup-url="{% url 'player_lookup' %}">Lookup Player</button>
-                </div>
-                <div class="form-errors" id="lookup-error" role="alert" hidden></div>
-                <section class="player-preview" id="player-preview" aria-live="polite" hidden>
-                    <h3>Player Found</h3>
-                    <dl class="preview-grid" id="preview-grid"></dl>
-                    <p class="stat-note">The lookup returns the player ID, server ID, and nickname. Enter the role and statistics yourself before saving.</p>
-                </section>
-                <div class="form-grid">
-                    {% for field in form %}
-                        {% if field.name != 'player_id' and field.name != 'server' %}
-                            <div class="field">
-                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                                {{ field }}
-                                {% if field.errors %}<ul class="field-errors">{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
-                                {% if field.name == 'highest_stars' %}<div class="field-errors" id="highest-stars-validation" role="alert" hidden></div>{% endif %}
-                                {% if field.name == 'current_stars' %}<div class="field-errors" id="current-stars-validation" role="alert" hidden></div>{% endif %}
-                            </div>
-                        {% endif %}
-                    {% endfor %}
-                </div>
-                <div class="form-actions">
-                    <button class="cancel-button" type="button" id="cancel-player-modal">Cancel</button>
-                    <button class="cancel-button" type="submit" name="update_existing" value="1" id="update-player" hidden>Update Existing Player</button>
-                    <button class="submit-button" type="submit">Save Player</button>
-                </div>
-            </form>
-        </section>
+{% block title %}Dashboard | DawnRoster{% endblock %}
+{% block content %}
+<section class="hero">
+    <div class="hero-text">
+        <p class="eyebrow">THE MLBB COMMUNITY HUB</p>
+        <h1>Find your next<br><span>winning lineup.</span></h1>
+        <p>Players looking for a team, teams building their roster, and organizers bringing everyone together.</p>
+        <div class="hero-actions">
+            <a class="button button-primary" href="{% url 'player-discovery' %}">Discover players <span aria-hidden="true">→</span></a>
+            <a class="button button-outline" href="{% url 'hero-catalog' %}">Browse heroes</a>
+            <a class="button button-outline" href="{% url 'player-leaderboard' %}">Community leaderboard</a>
+            {% if my_player %}<a class="button button-outline" href="{% url 'player-profile' %}">Edit your profile</a>
+            {% else %}<a class="button button-outline" href="{% url 'player-profile' %}">Create player profile</a>{% endif %}
+        </div>
     </div>
-    <script src="{% static 'myapp/theme.js' %}" defer></script>
-    <script src="{% static 'myapp/dashboard.js' %}" defer></script>
-</body>
-</html>
+    <div class="hero-visual" aria-hidden="true">
+        <img class="hero-crest" src="{% static 'myapp/arena-crest.svg' %}" alt="">
+        <div class="hero-visual-label"><span>TEAM UP</span><i></i><span>RISE TOGETHER</span></div>
+        <div class="hero-visual-index">MLBB <b>×</b> COMMUNITY</div>
+    </div>
+</section>
+<section class="stats-row" aria-label="Community overview">
+    <article class="stat"><span>PLAYER PROFILES</span><strong>{{ total_players }}</strong></article>
+    <article class="stat"><span>AVERAGE WIN RATE</span><strong>{{ avg_win_rate|floatformat:2 }}%</strong></article>
+    <article class="stat"><span>OPEN TEAMS</span><strong>{{ total_teams }}</strong></article>
+</section>
+<section class="analytics-grid" aria-label="Community analytics">
+    <article class="analytics-panel">
+        <div class="section-title"><div><p class="eyebrow">REAL COMMUNITY RECORDS</p><h2>Players by rank</h2></div></div>
+        {% for item in rank_distribution %}
+            <div class="distribution-row"><span>{{ item.current_rank }}</span><div class="distribution-track" role="img" aria-label="{{ item.total }} player{{ item.total|pluralize }}"><i style="width: {{ item.percentage }}%"></i></div><strong>{{ item.total }}</strong></div>
+        {% empty %}<p class="muted">No opted-in player profiles yet.</p>{% endfor %}
+    </article>
+    <article class="analytics-panel">
+        <div class="section-title"><div><p class="eyebrow">PLAYER PREFERENCES</p><h2>Players by role</h2></div></div>
+        {% for item in role_distribution %}
+            <div class="distribution-row"><span>{{ item.main_role }}</span><div class="distribution-track" role="img" aria-label="{{ item.total }} player{{ item.total|pluralize }}"><i style="width: {{ item.percentage }}%"></i></div><strong>{{ item.total }}</strong></div>
+        {% empty %}<p class="muted">No opted-in player profiles yet.</p>{% endfor %}
+    </article>
+    <article class="analytics-panel">
+        <div class="section-title"><div><p class="eyebrow">SYSTEM RANKING</p><h2>Top players</h2></div><a class="text-link" href="{% url 'player-leaderboard' %}">Leaderboard →</a></div>
+        {% for player in top_ranked_players %}
+            <div class="top-player-row"><span class="top-player-rank">{{ forloop.counter }}</span><strong>{{ player.ign }}</strong><span>{{ player.current_rank }} · {{ player.current_stars }} stars</span></div>
+        {% empty %}<p class="muted">Opted-in player profiles will appear here.</p>{% endfor %}
+    </article>
+    <article class="analytics-panel meta-unavailable">
+        <div class="section-title"><div><p class="eyebrow">EXTERNAL HERO META</p><h2>Statistics not connected</h2></div></div>
+        <p>No verified, authorized current-statistics API is configured. This dashboard does not label external data as live or use guessed values.</p>
+        <a class="text-link" href="{% url 'hero-catalog' %}">Browse the local hero catalog →</a>
+        <a class="text-link" href="https://mlbbhub.com/heroes" target="_blank" rel="noopener noreferrer">MLBBHub hero reference ↗</a>
+    </article>
+</section>
+{% if legacy_players %}
+<section class="content-section">
+    <div class="section-title"><div><p class="eyebrow">UNLINKED PLAYER RECORDS</p><h2>Recent records</h2></div><a class="text-link" href="{% url 'teams' %}">Manage team rosters →</a></div>
+    <div class="card-grid">
+        {% for player in legacy_players %}
+            <article class="community-card">
+                <div class="card-overline"><span class="role-chip">{{ player.main_role }}</span><span>AVAILABLE TO RECRUIT</span></div>
+                <h3>{{ player.ign }}</h3>
+                <p class="muted">{{ player.current_rank }} · {{ player.win_rate }}% win rate</p>
+                <p class="record-updated">Updated {{ player.updated_at|date:"M j, Y · H:i" }} · Not linked to an account</p>
+                <p>{{ player.biography|default:"Legacy player record available to add to a team roster."|truncatechars:120 }}</p>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+<section class="content-section">
+    <div class="section-title"><div><p class="eyebrow">LATEST PROFILES</p><h2>Recent player records</h2></div><a class="text-link" href="{% url 'player-discovery' %}">Browse all →</a></div>
+    <div class="card-grid">
+        {% for player in players %}
+            <article class="community-card">
+                <div class="card-overline"><span class="role-chip">{{ player.main_role }}</span><span class="availability">AVAILABLE</span></div>
+                <h3>{{ player.ign }}</h3>
+                <p class="muted">{{ player.current_rank }} · {{ player.win_rate }}% win rate</p>
+                <p class="record-updated">Updated {{ player.updated_at|date:"M j, Y · H:i" }}</p>
+                <p>{{ player.biography|default:"Ready to find the right squad."|truncatechars:120 }}</p>
+                <div class="hero-tags">{% for hero in player.main_heroes.all %}<span>{{ hero.name }}</span>{% endfor %}</div>
+            </article>
+        {% empty %}
+            <div class="empty-state"><h3>Start the player board</h3><p>Create your player profile and choose your five main heroes to become discoverable.</p><a class="text-link" href="{% url 'player-profile' %}">Create your profile →</a></div>
+        {% endfor %}
+    </div>
+</section>
+<section class="content-section">
+    <div class="section-title"><div><p class="eyebrow">RECRUITING NOW</p><h2>Teams building their lineup</h2></div><a class="text-link" href="{% url 'teams' %}">Explore teams →</a></div>
+    <div class="card-grid">
+        {% for team in teams %}
+            <article class="community-card team-card"><div class="card-overline"><span class="role-chip">{{ team.preferred_role|default:"Any role" }}</span><span>{{ team.memberships.count }} MEMBERS</span></div><h3>{{ team.name }}</h3><p>{{ team.description|default:"A team looking for its next teammate."|truncatechars:125 }}</p><a class="text-link" href="{% url 'team-detail' team.pk %}">View team →</a></article>
+        {% empty %}<div class="empty-state"><h3>No recruiting teams yet</h3><p>Create a team profile to start building your lineup.</p><a class="text-link" href="{% url 'teams' %}">Create a team →</a></div>{% endfor %}
+    </div>
+</section>
+<section class="content-section">
+    <div class="section-title"><div><p class="eyebrow">ON THE CALENDAR</p><h2>Upcoming tournaments</h2></div><a class="text-link" href="{% url 'tournaments' %}">Tournament hub →</a></div>
+    <div class="card-grid">
+        {% for tournament in tournaments %}<article class="community-card"><div class="card-overline"><span class="role-chip">{{ tournament.format|default:"MLBB tournament" }}</span><span>{{ tournament.starts_at|date:"M j, Y" }}</span></div><h3>{{ tournament.name }}</h3><p>{{ tournament.description|default:"Registration information and event details."|truncatechars:120 }}</p><a class="text-link" href="{% url 'tournament-detail' tournament.pk %}">Event details →</a></article>
+        {% empty %}<div class="empty-state"><h3>No tournaments published</h3><p>Organizers can publish a tournament with real registration and team entries.</p><a class="text-link" href="{% url 'tournaments' %}">Open tournaments →</a></div>{% endfor %}
+    </div>
+</section>
+{% endblock %}

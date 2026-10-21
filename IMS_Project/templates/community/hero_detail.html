@@ -1,0 +1,22 @@
+{% extends 'community/base.html' %}
+{% load static %}
+{% block title %}{{ hero.name }} | Hero catalog{% endblock %}
+{% block content %}
+<p class="breadcrumb"><a class="text-link" href="{% url 'hero-catalog' %}">Heroes</a><span aria-hidden="true"> / </span>{{ hero.name }}</p>
+<section class="hero-profile-card">
+    <div class="hero-profile-art">
+        {% if hero.portrait_url %}<img data-hero-image src="{{ hero.portrait_url }}" alt="{{ hero.name }} hero portrait" decoding="async" referrerpolicy="strict-origin-when-cross-origin"><span hidden aria-hidden="true">{{ hero.name|slice:":1" }}</span>
+        {% elif hero.portrait %}<img data-hero-image src="{% static hero.portrait %}" alt="{{ hero.name }} hero portrait" decoding="async"><span hidden aria-hidden="true">{{ hero.name|slice:":1" }}</span>
+        {% else %}<span class="catalog-hero-initial" aria-hidden="true">{{ hero.name|slice:":1" }}</span>{% endif %}
+    </div>
+    <div>
+        <p class="eyebrow">HERO CATALOG RECORD</p>
+        <h1>{{ hero.name }}</h1>
+        <p class="hero-detail-lane"><span class="role-chip">{{ hero.role|default:"Lane not listed" }}</span></p>
+        <p>This is the information present in this app's hero catalog. Current tier, win/pick/ban rates, builds, emblems, spells, skills, and matchup data are not available from a verified, authorized source here, so no values are inferred.</p>
+        <p class="muted">Artwork is loaded from the image URL already stored in this app's catalog; it is not downloaded or rehosted by this page. If it fails, a local initial fallback is shown.</p>
+        <a class="text-link" href="https://mlbbhub.com/heroes" target="_blank" rel="noopener noreferrer">Open MLBBHub hero reference ↗</a>
+    </div>
+</section>
+<script src="{% static 'myapp/hero-catalog.js' %}" defer></script>
+{% endblock %}

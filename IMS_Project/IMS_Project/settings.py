@@ -23,21 +23,27 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG', 'True').strip().lower() == 'true'
+# Production mode never enables debug, even if DJANGO_DEBUG is accidentally true.
+DJANGO_ENVIRONMENT = os.environ.get('DJANGO_ENV', 'development').strip().lower()
+if DJANGO_ENVIRONMENT not in {'development', 'production'}:
+    raise ImproperlyConfigured('DJANGO_ENV must be either development or production.')
+DEBUG = (
+    DJANGO_ENVIRONMENT == 'development'
+    and os.environ.get('DJANGO_DEBUG', 'True').strip().lower() == 'true'
+)
 
-# Use a generated key for local development; deployments must provide their own.
+# Use a generated key only for local development; deployments must provide their own.
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '').strip()
-if not SECRET_KEY and DEBUG:
+if not SECRET_KEY and DJANGO_ENVIRONMENT == 'development':
     SECRET_KEY = secrets.token_urlsafe(50)
 if not SECRET_KEY:
-    raise ImproperlyConfigured('Set DJANGO_SECRET_KEY when DJANGO_DEBUG is False.')
+    raise ImproperlyConfigured('Set DJANGO_SECRET_KEY for non-development environments.')
 
+default_hosts = 'localhost,127.0.0.1,testserver' if DJANGO_ENVIRONMENT == 'development' else ''
 ALLOWED_HOSTS = [
     host.strip()
     for host in os.environ.get(
-        'DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver'
+        'DJANGO_ALLOWED_HOSTS', default_hosts
     ).split(',')
     if host.strip()
 ]
@@ -131,10 +137,36 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+LOGIN_REDIRECT_URL = 'index'
+LOGOUT_REDIRECT_URL = 'login'
+LOGIN_URL = 'login'
 
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = os.environ.get(
+    'DJANGO_EMAIL_BACKEND',
+    'django.core.mail.backends.console.EmailBackend' if DEBUG
+    else 'django.core.mail.backends.smtp.EmailBackend',
+)
+EMAIL_HOST = os.environ.get('DJANGO_EMAIL_HOST', '')
+EMAIL_PORT = int(os.environ.get('DJANGO_EMAIL_PORT', '587'))
+EMAIL_HOST_USER = os.environ.get('DJANGO_EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('DJANGO_EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = os.environ.get('DJANGO_EMAIL_USE_TLS', 'True').strip().lower() == 'true'
+DEFAULT_FROM_EMAIL = os.environ.get('DJANGO_DEFAULT_FROM_EMAIL', 'noreply@mlbb.local')
+
+if not DEBUG:
+    SECURE_SSL_REDIRECT = os.environ.get('DJANGO_SECURE_SSL_REDIRECT', 'True').strip().lower() == 'true'
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = int(os.environ.get('DJANGO_SECURE_HSTS_SECONDS', '31536000'))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_REFERRER_POLICY = 'same-origin'
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    CSRF_COOKIE_SAMESITE = 'Lax'

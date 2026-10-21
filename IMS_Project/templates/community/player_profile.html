@@ -1,0 +1,134 @@
+{% extends 'community/base.html' %}
+{% load static %}
+{% block title %}Player Profile | DawnRoster{% endblock %}
+{% block content %}
+<section class="profile-masthead">
+    <div class="profile-masthead-copy">
+        <div class="breadcrumb"><a href="{% url 'index' %}">PLAYER HUB</a><span>/</span><span>PLAYER CARD</span></div>
+        <p class="eyebrow"><span class="eyebrow-dash"></span> YOUR PLAYER CARD</p>
+        <h1>{% if player %}Shape your<br><span>player identity.</span>{% else %}Make your mark<br><span>on the map.</span>{% endif %}</h1>
+        <p class="masthead-description">Give teams a clear read on your game: your role, your rank, and the five heroes you trust most.</p>
+        <div class="profile-progress">
+            <span class="progress-orb" aria-hidden="true">01</span>
+            <span><strong>PLAYER PROFILE</strong><small>Game identity & main heroes</small></span>
+            <i aria-hidden="true"></i>
+            <span class="progress-state">{% if player %}PROFILE ACTIVE{% else %}SETUP · 01 / 01{% endif %}</span>
+        </div>
+    </div>
+    <div class="profile-masthead-art" aria-hidden="true">
+        <img src="{% static 'myapp/arena-crest.svg' %}" alt="">
+        <div class="art-caption"><span>PROFILE SYSTEM</span><span>PLAYER / 001</span></div>
+    </div>
+</section>
+
+<div class="editor-heading">
+    <div><p class="eyebrow">BUILD YOUR PLAYER CARD</p><h2>{% if player %}Profile details{% else %}Start with the essentials{% endif %}</h2></div>
+    <p>Visible to signed-in members when you’re open to recruitment.</p>
+</div>
+
+<form method="post" class="profile-editor">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="form-errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+
+    <section class="editor-section identity-section" aria-labelledby="identity-title">
+        <div class="editor-section-heading">
+            <span class="section-number">01</span>
+            <div><p class="section-kicker">GAME IDENTITY</p><h2 id="identity-title">Your in-game details</h2><p>Enter your game IDs, then verify your IGN with the lookup.</p></div>
+            <span class="section-complete" aria-hidden="true">01 — IDENTITY</span>
+        </div>
+        <div class="lookup-panel">
+            <span class="lookup-icon" aria-hidden="true">↗</span>
+            <div class="lookup-copy"><strong>Find your MLBB game name</strong><p>Use your Player ID and Server ID to look up the public nickname.</p></div>
+            <button class="button button-outline lookup-button" id="lookup-player" type="button">LOOK UP NAME <span aria-hidden="true">→</span></button>
+            <p class="lookup-message" id="lookup-message" role="status" aria-live="polite"></p>
+        </div>
+        <div class="form-grid identity-grid">
+            {% for field in form %}
+                {% if field.name == 'player_id' or field.name == 'server' or field.name == 'ign' or field.name == 'main_role' %}
+                    <div class="form-field{% if field.name == 'ign' %} field-ign{% endif %}">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}
+                        {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                        {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="editor-section rank-section" aria-labelledby="rank-title">
+        <div class="editor-section-heading">
+            <span class="section-number">02</span>
+            <div><p class="section-kicker">YOUR CURRENT FORM</p><h2 id="rank-title">Rank & performance</h2><p>Show teams where you are now and your season-best climb.</p></div>
+            <span class="rank-emblem" aria-hidden="true">✦</span>
+        </div>
+        <div class="form-grid rank-grid">
+            {% for field in form %}
+                {% if field.name == 'highest_rank' or field.name == 'highest_stars' or field.name == 'current_rank' or field.name == 'current_stars' or field.name == 'win_rate' %}
+                    <div class="form-field">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}
+                        {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="editor-section about-section" aria-labelledby="about-title">
+        <div class="editor-section-heading">
+            <span class="section-number">03</span>
+            <div><p class="section-kicker">MAKE THE CONNECTION</p><h2 id="about-title">A little about your game</h2><p>Help a future squad understand how you play.</p></div>
+        </div>
+        <div class="form-grid about-grid">
+            {% for field in form %}
+                {% if field.name == 'preferred_play_style' or field.name == 'biography' or field.name == 'available_for_team' %}
+                    <div class="form-field{% if field.name == 'biography' %} form-field-wide{% endif %}{% if field.name == 'available_for_team' %} availability-field{% endif %}">
+                        {% if field.name == 'available_for_team' %}<label class="availability-toggle" for="{{ field.id_for_label }}">{{ field }}<span><strong>Open to recruitment</strong><small>Let teams find you in player discovery.</small></span></label>
+                        {% else %}<label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% endif %}
+                        {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                        {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="editor-section heroes-section hero-picker" aria-labelledby="heroes-title">
+        <div class="editor-section-heading heroes-heading">
+            <span class="section-number">04</span>
+            <div><p class="section-kicker">YOUR SIGNATURE FIVE</p><h2 id="heroes-title">Choose your main heroes</h2><p>Five distinct heroes. Your picks are saved with your player profile.</p></div>
+            <div class="hero-count-badge"><strong id="hero-count" aria-live="polite" aria-label="{{ selected_hero_count }} of 5 heroes selected"><span id="hero-count-value">{{ selected_hero_count }}</span><span> / 5</span></strong><small>SELECTED</small></div>
+        </div>
+        {% if form.main_heroes.errors %}<p class="field-error hero-error" role="alert">{{ form.main_heroes.errors }}</p>{% endif %}
+        <div class="hero-filters">
+            <label class="hero-search-wrap"><span aria-hidden="true">⌕</span><span class="visually-hidden">Search heroes</span><input class="form-control" id="hero-search" type="search" placeholder="Search the hero collection"></label>
+            <label class="visually-hidden" for="hero-role-filter">Filter heroes by role</label>
+            <select class="form-control" id="hero-role-filter"><option value="">ALL ROLES</option><option>Gold Lane</option><option>Exp Lane</option><option>Mid Lane</option><option>Jungle</option><option>Roam</option></select>
+            <a class="hero-filter-note" href="https://mobile-legends.fandom.com/wiki/List_of_heroes" target="_blank" rel="noopener noreferrer">HERO CATALOG SOURCE <i aria-hidden="true"></i></a>
+        </div>
+        <div class="hero-grid">
+            {% for checkbox in form.main_heroes %}
+                <label class="hero-option">
+                    {{ checkbox.tag }}
+                    <span class="hero-art-tile" aria-hidden="true">
+                        {% for item in heroes %}{% if item.name == checkbox.choice_label and item.portrait_url %}<img src="{{ item.portrait_url }}" alt="" loading="lazy" decoding="async" referrerpolicy="strict-origin-when-cross-origin">{% endif %}{% endfor %}
+                        <span>{{ checkbox.choice_label|first|upper }}</span>
+                    </span>
+                    <strong>{{ checkbox.choice_label }}</strong>
+                    <small>{% for item in heroes %}{% if item.name == checkbox.choice_label %}{{ item.role|default:"HERO" }}{% endif %}{% endfor %}</small>
+                    <span class="hero-selected-mark" aria-hidden="true">✓</span>
+                </label>
+            {% empty %}<p class="empty-state">The hero catalog is currently empty. Ask an administrator to add heroes.</p>{% endfor %}
+        </div>
+        <p class="selection-hint"><span aria-hidden="true">✦</span> Select five heroes to complete your player card.</p>
+    </section>
+
+    <div class="editor-submit-bar">
+        <div><span class="save-indicator" aria-hidden="true"></span><span>Your profile is saved securely to your account.</span></div>
+        <div class="form-actions"><a class="button button-quiet" href="{% url 'index' %}">CANCEL</a><button class="button button-primary save-profile-button" id="profile-submit" type="submit" disabled>SAVE PLAYER CARD <span aria-hidden="true">→</span></button></div>
+    </div>
+</form>
+{% if player %}<form method="post" class="danger-zone" onsubmit="return confirm('Delete your player profile and its five hero selections?');">{% csrf_token %}<input type="hidden" name="action" value="delete"><button class="button button-danger" type="submit">Delete player profile</button></form>{% endif %}
+{{ heroes|json_script:"hero-catalog" }}
+<script src="{% static 'myapp/hero-picker.js' %}" defer></script>
+<script src="{% static 'myapp/player-lookup.js' %}" defer></script>
+{% endblock %}

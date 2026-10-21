@@ -1,0 +1,51 @@
+{% extends 'community/base.html' %}
+{% load static %}
+{% block title %}My Heroes | DawnRoster{% endblock %}
+{% block content %}
+<section class="page-heading">
+    <p class="eyebrow">MLBB REFERENCE CATALOG</p>
+    <h1>Heroes</h1>
+    <p>Browse the hero records already maintained by this app. Lane labels and portraits come from its catalog; no unsupported meta statistics are shown.</p>
+</section>
+
+<section class="hero-catalog-source">
+    <p><strong>Meta data unavailable:</strong> this app does not have a documented, authorized hero-statistics feed. MLBBHub's public pages describe stats as approximate, and its robots rules disallow its API paths. We link to its reference pages instead of scraping or copying their data or artwork. Existing catalog portraits are loaded from external URLs already in this app; many come from the <a class="text-link" href="https://mobile-legends.fandom.com/wiki/List_of_heroes" target="_blank" rel="noopener noreferrer">Mobile Legends Fandom hero list ↗</a>. They are not rehosted here, and their reuse licenses have not been verified by this app.</p>
+    <a class="text-link" href="https://mlbbhub.com/heroes" target="_blank" rel="noopener noreferrer">Explore MLBBHub hero reference ↗</a>
+</section>
+
+<section class="hero-catalog-filters" aria-label="Search and filter heroes">
+    <form method="get" class="hero-filter-form">
+        <div class="form-field"><label for="hero-search">Search hero</label><input class="form-control" id="hero-search" type="search" name="q" value="{{ query }}" placeholder="Type a hero name"></div>
+        <div class="form-field"><label for="hero-lane">Recommended lane</label><select class="form-control" id="hero-lane" name="lane"><option value="">All lanes</option>{% for value in lanes %}<option value="{{ value }}" {% if lane == value %}selected{% endif %}>{{ value }}</option>{% endfor %}</select></div>
+        <div class="form-field"><label for="hero-sort">Sort</label><select class="form-control" id="hero-sort" name="sort"><option value="name" {% if sort == 'name' %}selected{% endif %}>Alphabetical</option><option value="lane" {% if sort == 'lane' %}selected{% endif %}>Lane, then name</option></select></div>
+        <button class="button button-primary" type="submit">Search heroes</button>
+        <a class="button button-outline" href="{% url 'hero-catalog' %}">Clear</a>
+    </form>
+</section>
+
+<section class="content-section">
+    <div class="section-title"><div><p class="eyebrow">CATALOG</p><h2>{{ page.paginator.count }} hero{{ page.paginator.count|pluralize }}</h2></div></div>
+    <div class="hero-catalog-grid">
+        {% for hero in page.object_list %}
+        <a class="hero-catalog-card" href="{% url 'hero-detail' hero.pk %}">
+            <div class="catalog-hero-art">
+                {% if hero.portrait_url %}<img data-hero-image src="{{ hero.portrait_url }}" alt="{{ hero.name }} hero portrait" loading="lazy" decoding="async" referrerpolicy="strict-origin-when-cross-origin"><span hidden aria-hidden="true">{{ hero.name|slice:":1" }}</span>
+                {% elif hero.portrait %}<img data-hero-image src="{% static hero.portrait %}" alt="{{ hero.name }} hero portrait" loading="lazy" decoding="async"><span hidden aria-hidden="true">{{ hero.name|slice:":1" }}</span>
+                {% else %}<span class="catalog-hero-initial" aria-hidden="true">{{ hero.name|slice:":1" }}</span>{% endif %}
+            </div>
+            <div class="hero-catalog-card-copy"><span class="role-chip">{{ hero.role|default:"Lane not listed" }}</span><h3>{{ hero.name }}</h3><span class="text-link">View catalog details →</span></div>
+        </a>
+        {% empty %}
+        <div class="empty-state"><h3>No heroes found</h3><p>Try another search or clear the lane filter.</p><a class="text-link" href="{% url 'hero-catalog' %}">Clear filters →</a></div>
+        {% endfor %}
+    </div>
+    {% if page.has_other_pages %}
+    <nav class="pagination" aria-label="Hero catalog pages">
+        {% if page.has_previous %}<a class="button button-outline" href="?q={{ query|urlencode }}&amp;lane={{ lane|urlencode }}&amp;sort={{ sort|urlencode }}&amp;page={{ page.previous_page_number }}">Previous</a>{% endif %}
+        <span>Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+        {% if page.has_next %}<a class="button button-outline" href="?q={{ query|urlencode }}&amp;lane={{ lane|urlencode }}&amp;sort={{ sort|urlencode }}&amp;page={{ page.next_page_number }}">Next</a>{% endif %}
+    </nav>
+    {% endif %}
+</section>
+<script src="{% static 'myapp/hero-catalog.js' %}" defer></script>
+{% endblock %}

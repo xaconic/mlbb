@@ -1,0 +1,62 @@
+{% extends 'community/base.html' %}
+{% block title %}{{ team.name }} | DawnRoster{% endblock %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">{% if team.recruiting %}RECRUITING TEAM{% else %}TEAM PROFILE{% endif %}</p><h1>{{ team.name }}</h1><p>{{ team.description|default:"This team has not added a description yet." }}</p><div class="hero-actions"><span class="role-chip">{{ team.preferred_role|default:"Any role" }}</span><span class="role-chip">{{ team.minimum_rank|default:"Any rank" }}</span>{% if team.owner_id == request.user.pk %}<a class="button button-outline" href="{% url 'team-edit' team.pk %}">Edit team</a>{% endif %}</div></section>
+<div class="two-column">
+    <section class="surface-panel">
+        <div class="roster-heading"><h2>Roster</h2>{% if manages %}<span>{{ active_member_count|add:roster_entry_count }} member{{ active_member_count|add:roster_entry_count|pluralize }}</span>{% endif %}</div>
+        {% if manages %}
+            <div class="roster-add">
+                <h3>Add a player</h3>
+                {% if available_player_count %}
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="add_player">
+                        <label class="visually-hidden" for="{{ add_player_form.player.id_for_label }}">Choose a player to add</label>
+                        {{ add_player_form.player }}
+                        {% for error in add_player_form.player.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+                        <button class="button button-primary" type="submit">Add to roster</button>
+                    </form>
+                    <p class="muted">Only player profiles open to recruitment are listed.</p>
+                {% else %}
+                    <p class="muted">No available player records yet. Player profiles must have recruitment availability turned on before they can be added.</p>
+                    <a class="text-link" href="{% url 'player-discovery' %}">Browse available players →</a>
+                {% endif %}
+            </div>
+        {% endif %}
+        <div class="stack-list">
+            {% if not active_member_count and not roster_entry_count %}<p class="muted">No players have joined this team yet.</p>{% endif %}
+            {% for item in team.memberships.all %}
+                {% if item.status == 'active' %}
+                    <div class="list-row">
+                        <span><strong>{{ item.user.username }}</strong><small>{{ item.get_role_display }}{% if item.user.player_profile %} · {{ item.user.player_profile.ign }}{% endif %}</small></span>
+                        {% if manages and item.user_id != team.owner_id %}
+                            <div class="member-actions">
+                                <form method="post">{% csrf_token %}<input type="hidden" name="action" value="update_role"><input type="hidden" name="membership_id" value="{{ item.pk }}"><label class="visually-hidden" for="role-{{ item.pk }}">Team responsibility</label><select id="role-{{ item.pk }}" name="role" class="form-control"><option value="player" {% if item.role == 'player' %}selected{% endif %}>Player</option><option value="coach" {% if item.role == 'coach' %}selected{% endif %}>Coach</option>{% if team.owner_id == request.user.pk %}<option value="manager" {% if item.role == 'manager' %}selected{% endif %}>Manager</option><option value="captain" {% if item.role == 'captain' %}selected{% endif %}>Captain</option>{% endif %}</select><button class="button button-quiet" type="submit">Set role</button></form>
+                                <form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_member"><input type="hidden" name="membership_id" value="{{ item.pk }}"><button class="button button-quiet" type="submit">Remove</button></form>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% empty %}
+            {% endfor %}
+            {% for entry in team.roster_entries.all %}
+                <div class="list-row">
+                    <span><strong>{{ entry.player.ign }}</strong><small>Player · {{ entry.player.main_role }} · {{ entry.player.current_rank }} · {{ entry.player.win_rate }}% win rate · Added {{ entry.created_at|date:"M j, Y" }}</small></span>
+                    {% if manages %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_roster_entry"><input type="hidden" name="roster_entry_id" value="{{ entry.pk }}"><button class="button button-quiet" type="submit">Remove</button></form>{% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+    <section class="surface-panel"><h2>Team access</h2>
+        {% if not membership and team.recruiting %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="request_join"><button class="button button-primary" type="submit">Request to join</button></form>
+        {% elif membership.status == 'requested' %}<p class="muted">Your membership request is awaiting review.</p>
+        {% elif membership.status == 'declined' and team.recruiting %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="request_join"><button class="button button-primary" type="submit">Request again</button></form>
+        {% elif membership.status == 'active' and team.owner_id != request.user.pk %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="leave"><button class="button button-outline" type="submit">Leave team</button></form>
+        {% elif not team.recruiting %}<p class="muted">This team is not currently recruiting.</p>{% endif %}
+        {% if manages %}<h3>Membership requests</h3>{% for item in team.memberships.all %}{% if item.status == 'requested' %}<div class="request-row"><strong>{{ item.user.username }}</strong><form method="post">{% csrf_token %}<input type="hidden" name="action" value="review_membership"><input type="hidden" name="membership_id" value="{{ item.pk }}"><button class="button button-primary" name="decision" value="accept" type="submit">Accept</button><button class="button button-quiet" name="decision" value="decline" type="submit">Decline</button></form></div>{% endif %}{% endfor %}{% endif %}
+        {% if team.owner_id == request.user.pk %}<form method="post" class="danger-zone" onsubmit="return confirm('Disband this team? This removes its memberships and tournament entries.');">{% csrf_token %}<input type="hidden" name="action" value="disband"><button class="button button-danger" type="submit">Disband team</button></form>{% endif %}
+    </section>
+</div>
+<section class="content-section"><div class="section-title"><div><p class="eyebrow">EVENTS</p><h2>Registered tournaments</h2></div></div><div class="stack-list">{% for entry in accepted_entries %}<a class="list-row" href="{% url 'tournament-detail' entry.tournament.pk %}"><span><strong>{{ entry.tournament.name }}</strong><small>{{ entry.tournament.starts_at|date:"M j, Y" }}</small></span><b>Event details →</b></a>{% empty %}<p class="muted">No accepted tournament entries yet.</p>{% endfor %}</div></section>
+{% endblock %}

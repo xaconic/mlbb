@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <!-- Shield gradient -->
+    <linearGradient id="iShieldGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0F1A2E"/>
+      <stop offset="100%" stop-color="#080E1B"/>
+    </linearGradient>
+    <!-- Accent gradient -->
+    <linearGradient id="iAccentGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#56D9F5"/>
+      <stop offset="100%" stop-color="#668CFF"/>
+    </linearGradient>
+    <!-- Energy gradient for D letter -->
+    <linearGradient id="iEnergyGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#64dceb"/>
+      <stop offset="50%" stop-color="#56D9F5"/>
+      <stop offset="100%" stop-color="#8B7CFF"/>
+    </linearGradient>
+    <!-- Violet accent gradient -->
+    <linearGradient id="iVioletGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#668CFF"/>
+      <stop offset="100%" stop-color="#8B7CFF"/>
+    </linearGradient>
+    <!-- Glow filter -->
+    <filter id="iGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <!-- Outer glow -->
+    <filter id="iOuterGlow" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
+      <feFlood flood-color="#56D9F5" flood-opacity="0.2"/>
+      <feComposite in2="blur" operator="in" result="glow"/>
+      <feMerge>
+        <feMergeNode in="glow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background circle (optional dark backdrop for favicon clarity) -->
+  <circle cx="32" cy="32" r="31" fill="#080E1B" opacity="0.0"/>
+
+  <!-- ========== SHIELD EMBLEM ========== -->
+  <g filter="url(#iOuterGlow)">
+    <!-- Shield outer shape — angular pointed crest -->
+    <path d="M32,2 L56,12 L60,36 L32,62 L4,36 L8,12 Z"
+          fill="url(#iShieldGrad)" stroke="url(#iAccentGrad)" stroke-width="1.5"
+          stroke-linejoin="miter"/>
+
+    <!-- Inner border -->
+    <path d="M32,7 L52,15 L55,36 L32,58 L9,36 L12,15 Z"
+          fill="none" stroke="#56D9F5" stroke-width="0.5" stroke-opacity="0.35"
+          stroke-linejoin="miter"/>
+
+    <!-- Second inner border for depth -->
+    <path d="M32,11 L48,18 L51,36 L32,54 L13,36 L16,18 Z"
+          fill="none" stroke="#668CFF" stroke-width="0.3" stroke-opacity="0.2"
+          stroke-linejoin="miter"/>
+
+    <!-- Energy lines — blade accents top-left -->
+    <line x1="11" y1="18" x2="22" y2="12" stroke="#64dceb" stroke-width="0.7" stroke-opacity="0.45"/>
+    <line x1="53" y1="18" x2="42" y2="12" stroke="#64dceb" stroke-width="0.7" stroke-opacity="0.45"/>
+
+    <!-- Energy lines — mid sides -->
+    <line x1="7" y1="30" x2="15" y2="24" stroke="#668CFF" stroke-width="0.4" stroke-opacity="0.3"/>
+    <line x1="57" y1="30" x2="49" y2="24" stroke="#668CFF" stroke-width="0.4" stroke-opacity="0.3"/>
+
+    <!-- Bottom chevron blade accents -->
+    <path d="M22,50 L32,61 L42,50" fill="none" stroke="#56D9F5" stroke-width="0.7" stroke-opacity="0.45"/>
+    <path d="M25,46 L32,55 L39,46" fill="none" stroke="#8B7CFF" stroke-width="0.4" stroke-opacity="0.3"/>
+
+    <!-- ========== THE "D" LETTERFORM ========== -->
+    <g filter="url(#iGlow)">
+      <!-- D vertical stroke -->
+      <path d="M22,19 L22,48 L27,48 L27,19 Z" fill="url(#iEnergyGrad)" opacity="0.95"/>
+
+      <!-- D angular curve (outer) -->
+      <path d="M27,19 L40,19 L49,28 L49,39 L40,48 L27,48 L27,44 L38,44 L44,38 L44,29 L38,23 L27,23 Z"
+            fill="url(#iAccentGrad)" opacity="0.9"/>
+
+      <!-- D inner cutout (negative space) -->
+      <path d="M30,27 L36,27 L41,31 L41,36 L36,40 L30,40 L30,37 L34,37 L37,34.5 L37,32.5 L34,30 L30,30 Z"
+            fill="#080E1B" opacity="0.9"/>
+    </g>
+
+    <!-- Star accent at top of shield -->
+    <g transform="translate(32, 8)" opacity="0.75">
+      <polygon points="0,-2.5 1,0 0,2.5 -1,0" fill="#64dceb"/>
+      <polygon points="-2.5,0 0,-1 2.5,0 0,1" fill="#64dceb" opacity="0.5"/>
+    </g>
+
+    <!-- Small corner accent nodes -->
+    <circle cx="32" cy="4" r="0.8" fill="#56D9F5" opacity="0.6"/>
+    <circle cx="8" cy="14" r="0.5" fill="#668CFF" opacity="0.4"/>
+    <circle cx="56" cy="14" r="0.5" fill="#668CFF" opacity="0.4"/>
+    <circle cx="4" cy="36" r="0.5" fill="#8B7CFF" opacity="0.3"/>
+    <circle cx="60" cy="36" r="0.5" fill="#8B7CFF" opacity="0.3"/>
+  </g>
+</svg>

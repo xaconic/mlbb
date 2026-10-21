@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#080f1e">
+    <meta name="description" content="DawnRoster - an unofficial MLBB companion for player profiles, hero rosters, progress, and rankings.">
+    <title>{% block title %}DawnRoster | Mobile Legends Player Hub{% endblock %}</title>
+    <link rel="icon" href="{% static 'myapp/dawnroster-icon.svg' %}" type="image/svg+xml">
+    <link rel="stylesheet" href="{% static 'myapp/theme.css' %}">
+    <link rel="stylesheet" href="{% static 'myapp/community.css' %}?v=3">
+</head>
+<body>
+    <div class="app-shell">
+        <header class="site-header">
+            <a class="site-brand" href="{% url 'index' %}" aria-label="DawnRoster home">
+                <img class="site-logo" src="{% static 'myapp/dawnroster-logo.svg' %}" alt="DawnRoster — Mobile Legends Player Hub" width="400" height="80">
+            </a>
+            <nav class="site-nav" aria-label="Main navigation">
+                <a href="{% url 'index' %}" {% if request.resolver_match.url_name == 'index' %}aria-current="page"{% endif %}>Overview</a>
+                <a href="{% url 'hero-catalog' %}" {% if request.resolver_match.url_name == 'hero-catalog' or request.resolver_match.url_name == 'hero-detail' %}aria-current="page"{% endif %}>Heroes</a>
+                <a href="{% url 'player-leaderboard' %}" {% if request.resolver_match.url_name == 'player-leaderboard' %}aria-current="page"{% endif %}>Leaderboard</a>
+                <a href="{% url 'player-discovery' %}" {% if request.resolver_match.url_name == 'player-discovery' %}aria-current="page"{% endif %}>Find players</a>
+                <a href="{% url 'teams' %}" {% if request.resolver_match.url_name == 'teams' or request.resolver_match.url_name == 'team-detail' or request.resolver_match.url_name == 'team-edit' %}aria-current="page"{% endif %}>Teams</a>
+                <a href="{% url 'tournaments' %}" {% if request.resolver_match.url_name == 'tournaments' or request.resolver_match.url_name == 'tournament-detail' or request.resolver_match.url_name == 'tournament-edit' %}aria-current="page"{% endif %}>Tournaments</a>
+                <a href="{% url 'notifications' %}" {% if request.resolver_match.url_name == 'notifications' %}aria-current="page"{% endif %}>Notifications</a>
+                <a href="{% url 'account-settings' %}" {% if request.resolver_match.url_name == 'account-settings' or request.resolver_match.url_name == 'password-change' %}aria-current="page"{% endif %}>Account</a>
+            </nav>
+            <div class="site-account">
+                <a class="nav-profile" href="{% url 'player-profile' %}" {% if request.resolver_match.url_name == 'player-profile' %}aria-current="page"{% endif %}>My profile</a>
+                <span>{{ request.user.username }}</span>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button class="button button-quiet" type="submit">Sign out</button>
+                </form>
+            </div>
+        </header>
+        {% if messages %}
+            <div class="messages" aria-live="polite">
+                {% for message in messages %}<p class="message message-{{ message.tags }}">{{ message }}</p>{% endfor %}
+            </div>
+        {% endif %}
+        <main class="page-content">{% block content %}{% endblock %}</main>
+        <footer class="site-footer">
+            <span>DAWNROSTER &middot; UNOFFICIAL MLBB COMPANION</span>
+            <span>Your player journey, all in one place.</span>
+        </footer>
+    </div>
+</body>
+</html>

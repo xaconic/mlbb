@@ -1,0 +1,13 @@
+{% extends 'community/base.html' %}
+{% block title %}Account settings | DawnRoster{% endblock %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">YOUR ACCOUNT</p><h1>Account settings</h1><p>Update your recovery email and the responsibilities attached to this account.</p></section>
+<section class="surface-form account-settings-form"><form method="post">{% csrf_token %}
+    {% if form.non_field_errors %}<div class="form-errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="form-field"><label for="{{ form.email.id_for_label }}">Account email</label>{{ form.email }}{% for error in form.email.errors %}<p class="field-error">{{ error }}</p>{% endfor %}<small>This address is used for password recovery and is not shown on public profiles.</small></div>
+    <fieldset class="account-roles"><legend>Platform responsibilities</legend>
+        {% for field in form %}{% if field.name != 'email' %}<label class="role-option">{{ field }}<span>{{ field.label }}</span></label>{% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}{% endif %}{% endfor %}
+    </fieldset>
+    <div class="form-actions"><button class="button button-primary" type="submit">Save account settings</button><a class="button button-outline" href="{% url 'password-change' %}">Change password</a></div>
+</form></section>
+{% endblock %}

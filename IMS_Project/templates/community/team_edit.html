@@ -1,0 +1,6 @@
+{% extends 'community/base.html' %}
+{% block title %}Edit {{ team.name }} | DawnRoster{% endblock %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">TEAM MANAGEMENT</p><h1>Edit {{ team.name }}</h1></section>
+<form method="post" class="surface-form">{% csrf_token %}{% for field in form %}<div class="form-field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}</div>{% endfor %}<div class="form-actions"><button class="button button-primary" type="submit">Save changes</button><a class="button button-outline" href="{% url 'team-detail' team.pk %}">Cancel</a></div></form>
+{% endblock %}
